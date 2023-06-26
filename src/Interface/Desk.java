@@ -1,76 +1,113 @@
 package Interface;
 
+import Back.Assignment;
+import Back.Project;
+import Back.Service.AssignmentService;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
-public class Desk {
-    JPanel main = new JPanel(new GridBagLayout());
+public class Desk extends JPanel {
+    Project project;
     JPanel body = new JPanel();
-    JPanel bar = new JPanel(new GridBagLayout());
-    JPanel menu = new JPanel(new GridBagLayout());
-    JButton button1 = new JButton("Settings");
+    JScrollPane scrollPane = new JScrollPane(body);
+    JButton createColumnButton = new JButton("Create new Column");
+    ActionListener buttonListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            switch (e.getActionCommand()){
+                case "createColumn":
+                    createColumn();
+                    addCreateColumnButton();
+                    break;
+            }
+        }
+    };
 
-    public Desk() {
+    public Desk(Project project) {
 
+        this.project = project;
         this.Init();
+        this.loadColumn(project);
+        this.addCreateColumnButton();
 
     }
 
-    public void Init() {
+    private void Init() {
 
-        main.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.black));
-        menu.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.black));
-        bar.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.black));
-        body.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.black));
+        /*scrollPane.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.yellow));
+        body.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.green));*/
 
-        GridBagConstraints menuConstraints = new GridBagConstraints();
-        menuConstraints.fill = GridBagConstraints.BOTH;
-        menuConstraints.anchor = GridBagConstraints.WEST;
-        menuConstraints.gridheight = 2;
-        menuConstraints.weighty = 0.50;
-        menuConstraints.weightx = 0;
-        main.add(menu, menuConstraints);
+        //This
 
-        bar.add(button1);
+        this.setLayout(new BorderLayout());
 
-        GridBagConstraints barConstraints = new GridBagConstraints();
-        barConstraints.gridx = 1;
-        barConstraints.gridy = 0;
-        barConstraints.fill = GridBagConstraints.BOTH;
-        barConstraints.anchor = GridBagConstraints.NORTH;
-        barConstraints.weightx = 0.5;
-        barConstraints.weighty = 0;
-        main.add(bar, barConstraints);
-
-
-        GridBagConstraints bodyConstraints = new GridBagConstraints();
-        bodyConstraints.gridx = 1;
-        bodyConstraints.gridy = 1;
-        bodyConstraints.fill = GridBagConstraints.BOTH;
-        barConstraints.anchor = GridBagConstraints.SOUTH;
-        barConstraints.weightx = 0.5;
-        barConstraints.weighty = 0.5;
-        main.add(body, bodyConstraints);
+        //Body
 
         body.setLayout(new BoxLayout(body, BoxLayout.X_AXIS));
+        body.add(Box.createHorizontalStrut(10));
 
-        main.setVisible(true);
-        bar.setVisible(true);
-        body.setVisible(true);
-        menu.setVisible(true);
+
+        //ScrollPane
+
+        scrollPane.setViewportView(body);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+
+
+        this.add(scrollPane);
+
+        // CreateColumnButton
+
+        createColumnButton.setActionCommand("createColumn");
+        createColumnButton.addActionListener(buttonListener);
+
+
 
     }
 
-    public void addColumn(Column column) {
+    private void addColumn(Assignment assignment) {
 
-        body.add(column.get());
-        body.add(Box.createRigidArea(new Dimension(10, 0)));
+        body.add(new Column(assignment));
+        body.add(Box.createHorizontalStrut(10));
+
+        this.update();
+
 
     }
 
-    public Container get() {
+    private void loadColumn(Project project) {
 
-        return main;
+        ArrayList<Assignment> assignmentList = AssignmentService.getAll(project.getId());
+        for (Assignment assignment : assignmentList) {
+            this.addColumn(assignment);
+        }
+    }
 
+    private void addCreateColumnButton(){
+
+        body.remove(createColumnButton);
+        body.add(createColumnButton, -1);
+        this.update();
+
+    }
+
+    private void createColumn(){
+
+        Assignment temp = new Assignment();
+        temp.setTitle(JOptionPane.showInputDialog("Введите название для группы задач"));
+        temp.setProject_id(project.getId());
+        temp.setUser_id(project.getUser_id());
+        temp.setId(AssignmentService.set(temp));
+
+        addColumn(temp);
+
+    }
+
+    public void update() {
+        this.revalidate();
+        this.repaint();
     }
 }

@@ -1,38 +1,53 @@
 package Interface;
 
-import Interface.Utilites.Utils;
+import Back.Assignment;
+import Back.Service.TaskService;
+import Back.Task;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
-public class Column {
-    JPanel main = new JPanel(new GridBagLayout());
+public class Column extends JPanel {
+
+    Assignment assignment;
     JPanel cards = new JPanel();
-    JScrollPane scrollPane = new JScrollPane();
+    JScrollPane scrollPane = new JScrollPane(cards);
     Label title = new Label();
     JButton button = new JButton("***");
+    JPopupMenu popup = new JPopupMenu();
+    ActionListener buttonListener = e -> popup.show();
 
-    public Column() {
 
-        this.title.setText("[Test alignment]");
+    public Column(Assignment assignment) {
+
+        this.assignment = assignment;
+
         this.Init();
-        this.addTask();
-
-    }
-
-    public Column(String Title) {
-
-        this.title.setText(Title);
-        this.Init();
-        this.addTask();
+        this.title.setText(assignment.getTitle());
+        this.loadTask(assignment);
+        this.update();
 
     }
 
     private void Init() {
 
-        main.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.BLACK));
-        cards.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.BLACK));
-        button.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.BLACK));
+        /*main.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.BLACK));
+        cards.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.BLACK));
+        button.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.BLACK));*/
+
+        //Column
+        this.setMinimumSize(new Dimension(320, 400));
+        this.setPreferredSize(new Dimension(340, 400));
+        this.setMaximumSize(new Dimension(340, 900));
+
+        this.setLayout(new GridBagLayout());
+
+        //title
 
         title.setAlignment(Label.CENTER);
 
@@ -41,11 +56,15 @@ public class Column {
         titleConstraints.weightx = 0.5;
         titleConstraints.fill = GridBagConstraints.HORIZONTAL;
         titleConstraints.anchor = GridBagConstraints.NORTH;
-        main.add(title, titleConstraints);
+        this.add(title, titleConstraints);
+
+        //CardsLayout
+
+        BoxLayout cardsLayout = new BoxLayout(cards, BoxLayout.PAGE_AXIS);
 
         //Cards
 
-        cards.setLayout(new BoxLayout(cards, BoxLayout.Y_AXIS));
+        cards.setLayout(cardsLayout);
 
         scrollPane.setViewportView(cards);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -56,37 +75,82 @@ public class Column {
         cardsConstraints.anchor = GridBagConstraints.CENTER;
         cardsConstraints.fill = GridBagConstraints.BOTH;
         cardsConstraints.gridy = 1;
-        main.add(scrollPane, cardsConstraints);
+        this.add(scrollPane, cardsConstraints);
 
         //Button
+
+        button.setBackground(Color.WHITE);
+        button.addActionListener(buttonListener);
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                popup.show(e.getComponent(), e.getX(), e.getY());
+            }
+        });
 
         GridBagConstraints buttonConstraints = new GridBagConstraints();
         buttonConstraints.weighty = 0;
         buttonConstraints.weightx = 0.5;
         buttonConstraints.gridy = 2;
-        main.add(button, buttonConstraints);
+        buttonConstraints.insets = new Insets(5,5,5,5);
+        this.add(button, buttonConstraints);
+
+        //popup
+
+        popup.add(new JMenuItem(new AbstractAction("New task") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Column.this.createTask(); //Дописать
+            }
+        }));
+
+        popup.add(new JMenuItem(new AbstractAction("Edit") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "Editing Column");
+            }
+        }));
 
     }
 
-    public void addTask(String title) { //Пока что добавляет Interface.ShortCard, но должен добавлять task
+    protected void addTask(Task task){
 
-        ShortCard shortCard = new ShortCard(title);
-        cards.add(Box.createRigidArea(new Dimension(0,10)));
-        cards.add(shortCard.get());
+        cards.add(Box.createVerticalStrut(10));
+        cards.add(new ShortCard(task));
+        this.update();
+
+    }
+
+    private void loadTask(Assignment assignment){
+
+        ArrayList<Task> taskList = TaskService.getAll(assignment.getId(), assignment.getProject_id());
+        for (Task task: taskList) {
+            this.addTask(task);
+        }
 
 
     }
 
-    public void addTask(){
-        ShortCard shortCard = new ShortCard();
-        cards.add(Box.createRigidArea(new Dimension(0,10)));
-        cards.add(shortCard.get());
+    public void createTask() {
+
+        Task temp = new Task();
+        temp.setAssignmentId(assignment.getId());
+        temp.setProjectId(assignment.getProject_id());
+        temp.setUser_id(assignment.getUser_id());
+        temp.setId(TaskService.set(temp)); //вставляем в таблицу получая значение
+
+        addTask(temp);
+
+        Card card = new Card(temp);
+        card.show();
+
 
     }
 
-    public Container get() {
+    private void update(){
 
-        return main;
+        this.revalidate();
+        this.repaint();
 
     }
 
