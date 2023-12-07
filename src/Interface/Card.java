@@ -9,8 +9,8 @@ import java.awt.event.ActionListener;
 
 public class Card extends JFrame {
     Task task;
-    private final JTextField title = new JTextField("TEST TITLE");
-    private final JLabel underTitle = new JLabel("UNDER_TITLE");
+    private final JTextField title = new JTextField();
+    private final JLabel underTitle = new JLabel();
     private final JTextPane description = new JTextPane();
     private final JButton close = new JButton("Close");
     private final JButton accept = new JButton("Accept");
@@ -80,7 +80,6 @@ public class Card extends JFrame {
         //Description
 
         description.setFont(new Font("Arial", Font.PLAIN, 16));
-        description.setText("TEST_DESCRIPTION");
 
         GridBagConstraints descriptionConstraints = new GridBagConstraints();
         descriptionConstraints.gridy = 2;
@@ -133,8 +132,8 @@ public class Card extends JFrame {
         temp.setAssignmentId(task.getAssignmentId());
         temp.setProjectId(task.getProjectId());
         temp.setUser_id(task.getUser_id());
-        TaskService.update(temp);
         task = temp;
+        TaskService.update(temp);
 
     }
 

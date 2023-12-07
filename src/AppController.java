@@ -8,6 +8,7 @@ public class AppController {
         Database.Init();
         registrationProcess();
         mainWindowProcess();
+        Database.Close();
     }
     public void registrationProcess(){
         Registration registration = new Registration();
